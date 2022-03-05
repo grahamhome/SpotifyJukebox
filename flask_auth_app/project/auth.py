@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import User
 from . import db
-from flask_login import login_user, login_required, logout_user
+from flask_login import login_user, login_required, logout_user, current_user
 
 auth = Blueprint("auth", __name__)
 
@@ -32,26 +32,30 @@ def login_post():
 
 
 @auth.route("/signup")
+@login_required
 def signup():
     return render_template("signup.html")
 
 
 @auth.route("/signup", methods=["POST"])
+@login_required
 def signup_post():
-    email = request.form.get("email")
-    name = request.form.get("name")
-    password = request.form.get("password")
+    if current_user.can_create_users:
+        email = request.form.get("email")
+        name = request.form.get("name")
+        password = request.form.get("password")
 
-    user = User.query.filter_by(email=email).first()
-    if user:
-        flash(f"A user with email address '{email}' already exists.")
-        return redirect(url_for("auth.signup"))
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash(f"A user with email address '{email}' already exists.")
+            return redirect(url_for("auth.signup"))
 
-    new_user = User(email=email, name=name, password=generate_password_hash(password, method="sha256"))
-    db.session.add(new_user)
-    db.session.commit()
+        new_user = User(email=email, name=name, password=generate_password_hash(password, method="sha256"))
+        db.session.add(new_user)
+        db.session.commit()
 
-    return redirect(url_for("auth.login"))
+    flash(f"Success: User '{email}' created successfully.")
+    return redirect(url_for("auth.signup"))
 
 
 @auth.route("/logout")
