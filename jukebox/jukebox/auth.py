@@ -31,15 +31,15 @@ def login_post():
         return redirect(url_for("main.profile"))
 
 
-@auth.route("/signup")
+@auth.route("/create_account")
 @login_required
-def signup():
-    return render_template("signup.html")
+def create_account():
+    return render_template("create_account.html")
 
 
-@auth.route("/signup", methods=["POST"])
+@auth.route("/create_account", methods=["POST"])
 @login_required
-def signup_post():
+def create_account_post():
     if current_user.can_create_users:
         email = request.form.get("email")
         name = request.form.get("name")
@@ -55,7 +55,7 @@ def signup_post():
         db.session.commit()
 
     flash(f"Success: User '{email}' created successfully.")
-    return redirect(url_for("auth.signup"))
+    return redirect(url_for("auth.create_account"))
 
 
 @auth.route("/logout")
